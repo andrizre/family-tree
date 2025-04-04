@@ -1,121 +1,1155 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Dump - Treasure Hunter Game</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Family Tree Builder Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gojs/2.1.52/go.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        #title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        #myDiagramDiv {
+            width: 100%;
+            height: 600px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .controls {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .panel {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button.danger {
+            background-color: #e74c3c;
+        }
+
+        button.danger:hover {
+            background-color: #c0392b;
+        }
+
+        button.success {
+            background-color: #2ecc71;
+        }
+
+        button.success:hover {
+            background-color: #27ae60;
+        }
+
+        .context-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            border-radius: 4px;
+        }
+
+        .context-menu-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .context-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .context-menu-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 60%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 15px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .search-box {
+            margin-bottom: 15px;
+        }
+
+        .tooltip {
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .member-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #3498db;
+            margin-bottom: 5px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .relationship-type {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="title">Family Tree Builder Pro</h1>
+    
+    <div class="panel">
+        <div class="tabs">
+            <div class="tab active" onclick="openTab('treeTab')">Pohon Keluarga</div>
+            <div class="tab" onclick="openTab('dataTab')">Data Anggota</div>
+            <div class="tab" onclick="openTab('settingsTab')">Pengaturan</div>
+        </div>
+        
+        <div id="treeTab" class="tab-content active">
+            <div class="controls">
+                <button onclick="showAddMemberModal()">Tambah Anggota Keluarga</button>
+                <button onclick="zoomToFit()" class="success">Tampilkan Semua</button>
+                <button onclick="exportImage()">Ekspor Gambar</button>
+                <button onclick="save()" class="success">Simpan</button>
+                <button onclick="importData()" class="success">Import Data</button>
+                <button onclick="exportData()">Export Data</button>
+                <button onclick="printDiagram()">Cetak</button>
+            </div>
+            
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Cari anggota keluarga..." oninput="searchMember()">
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #87CEEB;"></div>
+                    <span>Pendiri/Generasi Pertama</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #90EE90;"></div>
+                    <span>Keturunan</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #FFB6C1;"></div>
+                    <span>Pasangan</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #FFD700;"></div>
+                    <span>Belum Diketahui</span>
+                </div>
+            </div>
+            
+            <div id="myDiagramDiv"></div>
+        </div>
+        
+        <div id="dataTab" class="tab-content">
+            <input type="text" id="memberFilterInput" placeholder="Filter anggota..." oninput="filterMemberList()">
+            <div id="membersList"></div>
+        </div>
+        
+        <div id="settingsTab" class="tab-content">
+            <div class="form-group">
+                <label for="layoutSelect">Tipe Layout:</label>
+                <select id="layoutSelect" onchange="changeLayout()">
+                    <option value="tree">Pohon (Vertikal)</option>
+                    <option value="horizontal">Pohon (Horizontal)</option>
+                    <option value="layered">Berlapis</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="themeSelect">Tema:</label>
+                <select id="themeSelect" onchange="changeTheme()">
+                    <option value="light">Terang</option>
+                    <option value="dark">Gelap</option>
+                    <option value="colorful">Berwarna</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="nodeStyleSelect">Gaya Node:</label>
+                <select id="nodeStyleSelect" onchange="changeNodeStyle()">
+                    <option value="rectangle">Persegi</option>
+                    <option value="roundedRectangle">Persegi Melengkung</option>
+                    <option value="ellipse">Oval</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <button onclick="resetTree()" class="danger">Reset Pohon Keluarga</button>
+                <p><small>Peringatan: Tindakan ini akan menghapus semua data.</small></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah/Edit Anggota -->
+    <div id="memberModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeMemberModal()">&times;</span>
+            <h2 id="modalTitle">Tambah Anggota Keluarga</h2>
+            
+            <div class="form-group">
+                <label for="memberName">Nama:</label>
+                <input type="text" id="memberName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="birthDate">Tanggal Lahir:</label>
+                <input type="date" id="birthDate">
+            </div>
+            
+            <div class="form-group">
+                <label for="gender">Jenis Kelamin:</label>
+                <select id="gender">
+                    <option value="">-- Pilih --</option>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="location">Lokasi:</label>
+                <input type="text" id="location">
+            </div>
+            
+            <div class="form-group">
+                <label for="photo">URL Foto (opsional):</label>
+                <input type="text" id="photo" placeholder="http://example.com/foto.jpg">
+            </div>
+            
+            <div class="form-group">
+                <label for="notes">Catatan Tambahan:</label>
+                <textarea id="notes" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group" id="relationshipSection" style="display: none;">
+                <label>Jenis Hubungan:</label>
+                <div class="relationship-type">
+                    <label><input type="radio" name="relationshipType" value="child"> Anak</label>
+                    <label><input type="radio" name="relationshipType" value="spouse"> Pasangan</label>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button onclick="saveMember()" class="success">Simpan</button>
+                <button onclick="closeMemberModal()" class="danger">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Reset -->
+    <div id="resetModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeResetModal()">&times;</span>
+            <h2>Konfirmasi Reset</h2>
+            <p>Apakah Anda yakin ingin mereset pohon keluarga? Semua data akan dihapus dan tidak dapat dikembalikan.</p>
+            <div class="controls">
+                <button onclick="confirmReset()" class="danger">Ya, Reset</button>
+                <button onclick="closeResetModal()">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tooltip" class="tooltip"></div>
+    <textarea id="savedModel" style="width:100%; height:200px; display:none;"></textarea>
+
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            loadInventory();
-            updateEnergyBar();
-        });
+        let $ = go.GraphObject.make;
+        let diagram;
+        let currentNodeKey = null;
+        let currentParentKey = null;
+        let currentTheme = "light";
+        let currentNodeStyle = "rectangle";
+        
+        function init() {
+            // Inisialisasi diagram
+            diagram = $(go.Diagram, "myDiagramDiv",
+                {
+                    initialContentAlignment: go.Spot.Center,
+                    "undoManager.isEnabled": true,
+                    allowDelete: false,
+                    allowCopy: false,
+                    "toolManager.hoverDelay": 100,
+                    "clickCreatingTool.archetypeNodeData": { 
+                        name: "Anggota Baru", 
+                        color: "#FFD700" 
+                    },
+                    layout: $(go.TreeLayout, {
+                        angle: 90,
+                        layerSpacing: 50,
+                        nodeSpacing: 20
+                    })
+                });
 
-        function getRandomItem() {
-            const items = [
-                { name: "Botol Plastik", rarity: "Common", chance: 60 },
-                { name: "Kertas Bekas", rarity: "Common", chance: 60 },
-                { name: "Kaleng Kosong", rarity: "Common", chance: 60 },
-                { name: "Komponen Elektronik", rarity: "Uncommon", chance: 25 },
-                { name: "Aksesori Bekas", rarity: "Uncommon", chance: 25 },
-                { name: "Peralatan Rumah", rarity: "Uncommon", chance: 25 },
-                { name: "Barang Antik", rarity: "Rare", chance: 12 },
-                { name: "Perhiasan Kuno", rarity: "Rare", chance: 12 },
-                { name: "Perangkat Teknologi", rarity: "Rare", chance: 12 },
-                { name: "Artefak Langka", rarity: "Legendary", chance: 3 },
-                { name: "Barang Koleksi Limited", rarity: "Legendary", chance: 3 },
-                { name: "Harta Karun Tersembunyi", rarity: "Legendary", chance: 3 }
-            ];
+            // Template Node
+            diagram.nodeTemplate =
+                $(go.Node, "Auto",
+                    {
+                        contextMenu: $("ContextMenu",
+                            $("ContextMenuButton",
+                                $(go.TextBlock, "Edit"),
+                                { click: (e, obj) => editMember(e, obj.part.adornedPart) }
+                            ),
+                            $("ContextMenuButton",
+                                $(go.TextBlock, "Tambah Anak"),
+                                { click: (e, obj) => showAddRelativeModal(e, obj.part.adornedPart, "child") }
+                            ),
+                            $("ContextMenuButton",
+                                $(go.TextBlock, "Tambah Pasangan"),
+                                { click: (e, obj) => showAddRelativeModal(e, obj.part.adornedPart, "spouse") }
+                            ),
+                            $("ContextMenuButton",
+                                $(go.TextBlock, "Hapus"),
+                                { click: (e, obj) => deleteMember(e, obj.part.adornedPart) }
+                            )
+                        ),
+                        toolTip: $(go.Adornment, "Auto",
+                            $(go.Shape, { fill: "#FFFFCC" }),
+                            $(go.Panel, "Vertical", { margin: 6 },
+                                $(go.TextBlock, { margin: 2, font: "bold 12px sans-serif" },
+                                    new go.Binding("text", "name")),
+                                $(go.TextBlock, { margin: 2 },
+                                    new go.Binding("text", "", data => {
+                                        let details = [];
+                                        if (data.birthDate) details.push("Lahir: " + formatDate(data.birthDate));
+                                        if (data.gender) details.push("Gender: " + data.gender);
+                                        if (data.location) details.push("Lokasi: " + data.location);
+                                        if (data.notes) details.push("Catatan: " + data.notes);
+                                        return details.join("\n");
+                                    }))
+                            )
+                        )
+                    },
+                    $(go.Shape, "Rectangle",
+                        {
+                            fill: "white",
+                            stroke: "#333",
+                            strokeWidth: 2,
+                            portId: ""
+                        },
+                        new go.Binding("fill", "color"),
+                        new go.Binding("figure", "nodeShape", shapeFromStyle)),
+                    $(go.Panel, "Vertical",
+                        { margin: 8 },
+                        $(go.Panel, "Horizontal",
+                            { alignment: go.Spot.Center },
+                            // Placeholder untuk foto
+                            $(go.Picture,
+                                {
+                                    name: "Picture",
+                                    desiredSize: new go.Size(60, 60),
+                                    imageStretch: go.GraphObject.Fill,
+                                    stroke: "transparent",
+                                    margin: new go.Margin(0, 0, 5, 0)
+                                },
+                                new go.Binding("source", "photo"),
+                                // Default gambar jika tidak ada foto
+                                new go.Binding("source", "gender", gender => {
+                                    if (!gender || gender === "") return "/api/placeholder/60/60";
+                                    return gender === "Laki-laki" ? "/api/placeholder/60/60" : "/api/placeholder/60/60";
+                                }).ofObject())
+                        ),
+                        $(go.TextBlock,
+                            {
+                                font: "bold 14px sans-serif",
+                                textAlign: "center",
+                                margin: new go.Margin(5, 0, 2, 0)
+                            },
+                            new go.Binding("text", "name")),
+                        $(go.TextBlock,
+                            {
+                                font: "12px sans-serif",
+                                textAlign: "center"
+                            },
+                            new go.Binding("text", "", data => {
+                                let details = [];
+                                if (data.birthDate) details.push(formatDate(data.birthDate));
+                                if (data.gender) details.push(data.gender);
+                                return details.join(" • ");
+                            }))
+                    )
+                );
 
-            let rand = Math.random() * 100;
-            let cumulativeChance = 0;
+            // Template Link
+            diagram.linkTemplate =
+                $(go.Link,
+                    { routing: go.Link.Orthogonal, corner: 10 },
+                    $(go.Shape, { strokeWidth: 2, stroke: "#333" }),
+                    $(go.Shape, { toArrow: "Standard", stroke: null }),
+                    $(go.TextBlock, 
+                        { segmentOffset: new go.Point(0, -10), segmentIndex: 0 },
+                        new go.Binding("text", "relationship"))
+                );
 
-            for (let item of items) {
-                cumulativeChance += item.chance;
-                if (rand <= cumulativeChance) {
-                    return item;
+            // Penangan hover
+            diagram.addDiagramListener("ObjectSingleClicked", e => {
+                const node = e.subject.part;
+                if (node instanceof go.Node) {
+                    highlightRelatives(node);
+                }
+            });
+
+            // Memuat data yang tersimpan
+            load();
+            updateMembersList();
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return "";
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        function shapeFromStyle(style) {
+            switch (style) {
+                case "ellipse": return "Ellipse";
+                case "roundedRectangle": return "RoundedRectangle";
+                default: return "Rectangle";
+            }
+        }
+
+        // Modal untuk menambah anggota baru
+        function showAddMemberModal() {
+            document.getElementById('modalTitle').textContent = "Tambah Anggota Keluarga";
+            document.getElementById('memberName').value = "";
+            document.getElementById('birthDate').value = "";
+            document.getElementById('gender').value = "";
+            document.getElementById('location').value = "";
+            document.getElementById('photo').value = "";
+            document.getElementById('notes').value = "";
+            document.getElementById('relationshipSection').style.display = "none";
+            
+            currentNodeKey = null;
+            currentParentKey = null;
+            
+            document.getElementById('memberModal').style.display = "block";
+        }
+
+        // Modal untuk menambah kerabat
+        function showAddRelativeModal(e, node, relationType) {
+            document.getElementById('modalTitle').textContent = relationType === "child" ? 
+                "Tambah Anak" : "Tambah Pasangan";
+            
+            document.getElementById('memberName').value = "";
+            document.getElementById('birthDate').value = "";
+            document.getElementById('gender').value = "";
+            document.getElementById('location').value = "";
+            document.getElementById('photo').value = "";
+            document.getElementById('notes').value = "";
+            
+            currentParentKey = node.data.key;
+            currentNodeKey = null;
+            
+            document.getElementById('relationshipSection').style.display = "block";
+            document.querySelector(`input[name="relationshipType"][value="${relationType}"]`).checked = true;
+            
+            document.getElementById('memberModal').style.display = "block";
+        }
+
+        // Tutup modal
+        function closeMemberModal() {
+            document.getElementById('memberModal').style.display = "none";
+        }
+
+        // Simpan anggota keluarga
+        function saveMember() {
+            const name = document.getElementById('memberName').value.trim();
+            if (!name) {
+                alert("Nama tidak boleh kosong!");
+                return;
+            }
+            
+            const birthDate = document.getElementById('birthDate').value;
+            const gender = document.getElementById('gender').value;
+            const location = document.getElementById('location').value;
+            const photo = document.getElementById('photo').value;
+            const notes = document.getElementById('notes').value;
+            
+            // Membuat atau memperbarui node
+            if (currentNodeKey !== null) {
+                // Mode edit
+                const nodeData = diagram.model.findNodeDataForKey(currentNodeKey);
+                diagram.model.startTransaction("edit member");
+                diagram.model.setDataProperty(nodeData, "name", name);
+                diagram.model.setDataProperty(nodeData, "birthDate", birthDate);
+                diagram.model.setDataProperty(nodeData, "gender", gender);
+                diagram.model.setDataProperty(nodeData, "location", location);
+                diagram.model.setDataProperty(nodeData, "photo", photo);
+                diagram.model.setDataProperty(nodeData, "notes", notes);
+                diagram.model.commitTransaction("edit member");
+            } else {
+                // Mode tambah baru
+                const newKey = Date.now();
+                let color = "#87CEEB"; // Warna default untuk gen pertama
+                let relationship = "";
+                
+                if (currentParentKey !== null) {
+                    // Mendapatkan jenis hubungan
+                    const relationshipType = document.querySelector('input[name="relationshipType"]:checked');
+                    
+                    if (relationshipType && relationshipType.value === "spouse") {
+                        color = "#FFB6C1"; // Warna untuk pasangan
+                        relationship = "Pasangan";
+                    } else {
+                        color = "#90EE90"; // Warna untuk anak
+                        relationship = "Anak";
+                    }
+                }
+                
+                diagram.model.startTransaction("add member");
+                
+                // Tambah node baru
+                diagram.model.addNodeData({
+                    key: newKey,
+                    name: name,
+                    birthDate: birthDate,
+                    gender: gender,
+                    location: location,
+                    photo: photo,
+                    notes: notes,
+                    color: color,
+                    nodeShape: currentNodeStyle
+                });
+                
+                // Tambah link jika ada induk
+                if (currentParentKey !== null) {
+                    diagram.model.addLinkData({
+                        from: currentParentKey,
+                        to: newKey,
+                        relationship: relationship
+                    });
+                }
+                
+                diagram.model.commitTransaction("add member");
+            }
+            
+            closeMemberModal();
+            updateMembersList();
+        }
+
+        // Edit anggota
+        function editMember(e, node) {
+            document.getElementById('modalTitle').textContent = "Edit Anggota Keluarga";
+            
+            document.getElementById('memberName').value = node.data.name || "";
+            document.getElementById('birthDate').value = node.data.birthDate || "";
+            document.getElementById('gender').value = node.data.gender || "";
+            document.getElementById('location').value = node.data.location || "";
+            document.getElementById('photo').value = node.data.photo || "";
+            document.getElementById('notes').value = node.data.notes || "";
+            
+            document.getElementById('relationshipSection').style.display = "none";
+            
+            currentNodeKey = node.data.key;
+            currentParentKey = null;
+            
+            document.getElementById('memberModal').style.display = "block";
+        }
+
+        // Hapus anggota
+        function deleteMember(e, node) {
+            if (confirm(`Yakin ingin menghapus ${node.data.name}?`)) {
+                diagram.model.startTransaction("delete member");
+                
+                // Hancurkan links terlebih dahulu
+                const nodesToProcess = [node.data.key];
+                
+                while (nodesToProcess.length > 0) {
+                    const currentKey = nodesToProcess.shift();
+                    
+                    // Temukan semua links yang terhubung dari node ini
+                    const links = diagram.model.linkDataArray.filter(link => link.from === currentKey);
+                    
+                    // Tambahkan target nodes ke list untuk diproses
+                    links.forEach(link => nodesToProcess.push(link.to));
+                    
+                    // Hapus node dan semua links terkait
+                    diagram.model.removeLinkDataCollection(links);
+                    const nodeData = diagram.model.findNodeDataForKey(currentKey);
+                    if (nodeData) {
+                        diagram.model.removeNodeData(nodeData);
+                    }
+                }
+                
+                diagram.model.commitTransaction("delete member");
+                updateMembersList();
+            }
+        }
+
+        // Menyoroti kerabat
+        function highlightRelatives(node) {
+            diagram.nodes.each(n => {
+                n.isHighlighted = false;
+            });
+            
+            diagram.links.each(l => {
+                l.isHighlighted = false;
+            });
+            
+            const nodeKey = node.data.key;
+            
+            // Soroti node yang dipilih
+            node.isHighlighted = true;
+            
+            // Temukan semua kerabat terkait (orang tua, anak, pasangan)
+            diagram.links.each(link => {
+                if (link.fromNode.data.key === nodeKey || link.toNode.data.key === nodeKey) {
+                    link.isHighlighted = true;
+                    
+                    if (link.fromNode.data.key === nodeKey) {
+                        link.toNode.isHighlighted = true;
+                    } else {
+                        link.fromNode.isHighlighted = true;
+                    }
+                }
+            });
+        }
+
+        // Mencari anggota
+        function searchMember() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (!searchText) {
+                // Reset pencarian
+                diagram.nodes.each(node => {
+                    node.isHighlighted = false;
+                });
+                return;
+            }
+            
+            diagram.nodes.each(node => {
+                const name = (node.data.name || "").toLowerCase();
+                const details = [
+                    (node.data.birthDate || ""),
+                    (node.data.gender || ""),
+                    (node.data.location || ""),
+                    (node.data.notes || "")
+                ].join(" ").toLowerCase();
+                
+                if (name.includes(searchText) || details.includes(searchText)) {
+                    node.isHighlighted = true;
+                    node.diagram.scrollToRect(node.actualBounds);
+                } else {
+                    node.isHighlighted = false;
+                }
+            });
+        }
+
+        // Perbarui daftar anggota
+        function updateMembersList() {
+            const listEl = document.getElementById('membersList');
+            listEl.innerHTML = "";
+            
+            if (!diagram.model.nodeDataArray || diagram.model.nodeDataArray.length === 0) {
+                listEl.innerHTML = "<p>Tidak ada anggota keluarga yang ditambahkan.</p>";
+                return;
+            }
+            
+            const table = document.createElement('table');
+            table.style.width = "100%";
+            table.style.borderCollapse = "collapse";
+            
+            // Header tabel
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Nama</th>
+                    <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Tgl Lahir</th>
+                    <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Gender</th>
+                    <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Lokasi</th>
+                    <th style="text-align: center; padding: 8px; border-bottom: 2px solid #ddd;">Aksi</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+            
+            // Body tabel
+            const tbody = document.createElement('tbody');
+            
+            diagram.model.nodeDataArray.forEach(node => {
+                const row = document.createElement('tr');
+                row.style.borderBottom = "1px solid #ddd";
+                
+                row.innerHTML = `
+                    <td style="padding: 8px;">${node.name || ""}</td>
+                    <td style="padding: 8px;">${node.birthDate ? formatDate(node.birthDate) : ""}</td>
+                    <td style="padding: 8px;">${node.gender || ""}</td>
+                    <td style="padding: 8px;">${node.location || ""}</td>
+                    <td style="padding: 8px; text-align: center;"><button onclick="editFromList(${node.key})" style="padding: 4px 8px; margin-right: 5px;">Edit</button>
+                        <button onclick="viewInTree(${node.key})" style="padding: 4px 8px; background-color: #3498db;">Lihat</button>
+                        <button onclick="deleteFromList(${node.key})" style="padding: 4px 8px; background-color: #e74c3c; color: white;">Hapus</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            table.appendChild(tbody);
+            listEl.appendChild(table);
+        }
+
+        // Filter daftar anggota
+        function filterMemberList() {
+            const filterText = document.getElementById('memberFilterInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#membersList tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(filterText)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        // Edit dari daftar
+        function editFromList(key) {
+            const nodeData = diagram.model.findNodeDataForKey(key);
+            if (nodeData) {
+                const node = diagram.findNodeForData(nodeData);
+                editMember(null, node);
+            }
+        }
+
+        // Lihat di pohon
+        function viewInTree(key) {
+            const nodeData = diagram.model.findNodeDataForKey(key);
+            if (nodeData) {
+                const node = diagram.findNodeForData(nodeData);
+                if (node) {
+                    openTab('treeTab');
+                    diagram.centerRect(node.actualBounds);
+                    highlightRelatives(node);
                 }
             }
         }
 
-        function updateEnergyBar() {
-            const maxEnergy = 150;
-            let currentEnergy = parseInt(localStorage.getItem("energy")) || maxEnergy;
-            document.getElementById('energyValue').textContent = currentEnergy;
-            document.getElementById('energyBar').style.width = `${(currentEnergy / maxEnergy) * 100}%`;
-        }
-
-        function searchTreasure() {
-            let currentEnergy = parseInt(localStorage.getItem("energy")) || 150;
-            if (currentEnergy < 10) {
-                alert("Energi tidak cukup untuk mencari barang!");
-                return;
+        // Hapus dari daftar
+        function deleteFromList(key) {
+            const nodeData = diagram.model.findNodeDataForKey(key);
+            if (nodeData) {
+                const node = diagram.findNodeForData(nodeData);
+                deleteMember(null, node);
             }
-
-            let item = getRandomItem();
-            currentEnergy -= 10;
-            localStorage.setItem("energy", currentEnergy);
-            updateEnergyBar();
-            addItemToInventory(item);
         }
 
-        function addItemToInventory(item) {
-            let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
-            inventory.push(item);
-            localStorage.setItem("inventory", JSON.stringify(inventory));
-            loadInventory();
-        }
-
-        function loadInventory() {
-            let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
-            let inventoryContainer = document.getElementById("inventoryList");
-            inventoryContainer.innerHTML = "";
-
-            if (inventory.length === 0) {
-                inventoryContainer.innerHTML = "<p class='text-gray-500'>Inventaris masih kosong.</p>";
-                return;
+        // Ganti tab
+        function openTab(tabName) {
+            const tabs = document.getElementsByClassName("tab");
+            const tabContents = document.getElementsByClassName("tab-content");
+            
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].className = tabs[i].className.replace(" active", "");
             }
+            
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].className = tabContents[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).className += " active";
+            document.querySelector(`.tab[onclick="openTab('${tabName}')"]`).className += " active";
+        }
 
-            inventory.forEach((item, index) => {
-                let itemElement = document.createElement("div");
-                itemElement.className = "p-2 border-b flex justify-between";
-                itemElement.innerHTML = `<span>${item.name} (${item.rarity})</span>`;
-                inventoryContainer.appendChild(itemElement);
+        // Ganti layout
+        function changeLayout() {
+            const layoutType = document.getElementById('layoutSelect').value;
+            
+            if (layoutType === "tree") {
+                diagram.layout = $(go.TreeLayout, {
+                    angle: 90,
+                    layerSpacing: 50,
+                    nodeSpacing: 20
+                });
+            } else if (layoutType === "horizontal") {
+                diagram.layout = $(go.TreeLayout, {
+                    angle: 0,
+                    layerSpacing: 50,
+                    nodeSpacing: 20
+                });
+            } else if (layoutType === "layered") {
+                diagram.layout = $(go.LayeredDigraphLayout, {
+                    direction: 90,
+                    layerSpacing: 50,
+                    columnSpacing: 30
+                });
+            }
+            
+            diagram.layoutDiagram(true);
+        }
+
+        // Ganti tema
+        function changeTheme() {
+            currentTheme = document.getElementById('themeSelect').value;
+            
+            if (currentTheme === "dark") {
+                document.body.style.backgroundColor = "#2c3e50";
+                document.body.style.color = "#ecf0f1";
+                diagram.div.style.backgroundColor = "#34495e";
+                
+                diagram.linkTemplate =
+                    $(go.Link,
+                        { routing: go.Link.Orthogonal, corner: 10 },
+                        $(go.Shape, { strokeWidth: 2, stroke: "#ecf0f1" }),
+                        $(go.Shape, { toArrow: "Standard", stroke: null, fill: "#ecf0f1" }),
+                        $(go.TextBlock, 
+                            { 
+                                segmentOffset: new go.Point(0, -10), 
+                                segmentIndex: 0,
+                                stroke: "#ecf0f1"
+                            },
+                            new go.Binding("text", "relationship"))
+                    );
+                
+                diagram.nodes.each(node => {
+                    const shape = node.findObject("Shape");
+                    if (shape) shape.stroke = "#ecf0f1";
+                    
+                    const textBlocks = node.findObjectsNamed("TextBlock");
+                    if (textBlocks) {
+                        textBlocks.each(tb => {
+                            tb.stroke = "#ecf0f1";
+                        });
+                    }
+                });
+            } else if (currentTheme === "colorful") {
+                document.body.style.backgroundColor = "#f9f9f9";
+                document.body.style.color = "#333";
+                diagram.div.style.backgroundColor = "#fff";
+                
+                diagram.linkTemplate =
+                    $(go.Link,
+                        { routing: go.Link.Orthogonal, corner: 10 },
+                        $(go.Shape, { strokeWidth: 3, stroke: "#9b59b6" }),
+                        $(go.Shape, { toArrow: "Standard", stroke: null, fill: "#9b59b6" }),
+                        $(go.TextBlock, 
+                            { 
+                                segmentOffset: new go.Point(0, -10), 
+                                segmentIndex: 0,
+                                stroke: "#9b59b6", 
+                                font: "bold 12px sans-serif"
+                            },
+                            new go.Binding("text", "relationship"))
+                    );
+                
+                const colors = ["#3498db", "#2ecc71", "#e74c3c", "#f39c12", "#9b59b6"];
+                let colorIndex = 0;
+                
+                diagram.nodes.each(node => {
+                    const shape = node.findObject("Shape");
+                    if (shape) {
+                        const originalColor = node.data.color;
+                        
+                        if (originalColor === "#87CEEB") {
+                            shape.fill = "#3498db";
+                        } else if (originalColor === "#90EE90") {
+                            shape.fill = "#2ecc71";
+                        } else if (originalColor === "#FFB6C1") {
+                            shape.fill = "#e74c3c";
+                        } else {
+                            shape.fill = colors[colorIndex % colors.length];
+                            colorIndex++;
+                        }
+                        
+                        shape.stroke = "#333";
+                    }
+                });
+            } else {
+                // Default light theme
+                document.body.style.backgroundColor = "#f5f5f5";
+                document.body.style.color = "#333";
+                diagram.div.style.backgroundColor = "#fff";
+                
+                diagram.linkTemplate =
+                    $(go.Link,
+                        { routing: go.Link.Orthogonal, corner: 10 },
+                        $(go.Shape, { strokeWidth: 2, stroke: "#333" }),
+                        $(go.Shape, { toArrow: "Standard", stroke: null }),
+                        $(go.TextBlock, 
+                            { segmentOffset: new go.Point(0, -10), segmentIndex: 0 },
+                            new go.Binding("text", "relationship"))
+                    );
+                
+                diagram.nodes.each(node => {
+                    const shape = node.findObject("Shape");
+                    if (shape) shape.stroke = "#333";
+                    
+                    const textBlocks = node.findObjectsNamed("TextBlock");
+                    if (textBlocks) {
+                        textBlocks.each(tb => {
+                            tb.stroke = "#333";
+                        });
+                    }
+                });
+                
+                // Kembalikan warna node ke warna asli
+                diagram.model.nodeDataArray.forEach(nodeData => {
+                    diagram.model.setDataProperty(nodeData, "color", nodeData.color);
+                });
+            }
+            
+            diagram.rebuildParts();
+        }
+
+        // Ganti gaya node
+        function changeNodeStyle() {
+            currentNodeStyle = document.getElementById('nodeStyleSelect').value;
+            
+            diagram.model.nodeDataArray.forEach(nodeData => {
+                diagram.model.setDataProperty(nodeData, "nodeShape", currentNodeStyle);
             });
         }
+
+        // Memperbesar untuk melihat semua
+        function zoomToFit() {
+            diagram.zoomToFit();
+        }
+
+        // Ekspor gambar
+        function exportImage() {
+            const imgData = diagram.makeImageData({ scale: 1, background: "white" });
+            const link = document.createElement("a");
+            link.download = "pohon-keluarga.png";
+            link.href = imgData;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Ekspor data
+        function exportData() {
+            const jsonData = diagram.model.toJson();
+            const dataUrl = "data:text/json;charset=utf-8," + encodeURIComponent(jsonData);
+            const link = document.createElement("a");
+            link.href = dataUrl;
+            link.download = "data-pohon-keluarga.json";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Import data
+        function importData() {
+            const input = document.createElement("input");
+            input.type = "file";
+            input.accept = ".json";
+            
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = event => {
+                    try {
+                        const jsonContent = event.target.result;
+                        diagram.model = go.Model.fromJson(jsonContent);
+                        localStorage.setItem('familyTree', jsonContent);
+                        updateMembersList();
+                        alert("Data berhasil diimpor!");
+                    } catch (err) {
+                        alert("Error: " + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        // Mencetak diagram
+        function printDiagram() {
+            diagram.commandHandler.printDiagram({ scale: 0.7 });
+        }
+
+        // Reset pohon keluarga
+        function resetTree() {
+            document.getElementById('resetModal').style.display = "block";
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').style.display = "none";
+        }
+
+        function confirmReset() {
+            diagram.model = new go.GraphLinksModel(
+                [],
+                [],
+                {
+                    nodeKeyProperty: "key",
+                    linkFromPortIdProperty: "from",
+                    linkToPortIdProperty: "to"
+                }
+            );
+            
+            localStorage.removeItem('familyTree');
+            updateMembersList();
+            closeResetModal();
+        }
+
+        // Menyimpan data
+        function save() {
+            document.getElementById('savedModel').value = diagram.model.toJson();
+            localStorage.setItem('familyTree', diagram.model.toJson());
+            alert("Pohon keluarga berhasil disimpan!");
+        }
+
+        // Memuat data yang tersimpan
+        function load() {
+            const data = localStorage.getItem('familyTree');
+            if (data) {
+                diagram.model = go.Model.fromJson(data);
+            } else {
+                diagram.model = new go.GraphLinksModel(
+                    [],
+                    [],
+                    {
+                        nodeKeyProperty: "key",
+                        linkFromPortIdProperty: "from",
+                        linkToPortIdProperty: "to"
+                    }
+                );
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
     </script>
-</head>
-<body class="bg-gray-100 min-h-screen p-4">
-    <div class="max-w-6xl mx-auto">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-blue-600 mb-2">Search Dump</h1>
-            <p class="text-gray-600">Menjadi pemburu harta karun di tempat pembuangan!</p>
-        </header>
-
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Energi</h2>
-            <div class="mb-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-gray-600">Energi Saat Ini:</span>
-                    <span class="font-bold text-blue-600"><span id="energyValue">150</span>/150</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-4">
-                    <div id="energyBar" class="bg-blue-600 h-4 rounded-full w-full transition-all duration-300"></div>
-                </div>
-                <p class="text-sm text-gray-500 mt-2">Energi berkurang 10 setiap pencarian</p>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Inventaris</h2>
-            <div id="inventoryList" class="text-gray-700"></div>
-        </div>
-
-        <div class="text-center mt-8">
-            <button onclick="searchTreasure()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300">
-                Mulai Pencarian!
-            </button>
-        </div>
-    </div>
 </body>
 </html>
