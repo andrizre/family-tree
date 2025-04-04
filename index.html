@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Dump - Treasure Hunter Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            loadInventory();
+            updateEnergyBar();
+        });
+
+        function getRandomItem() {
+            const items = [
+                { name: "Botol Plastik", rarity: "Common", chance: 60 },
+                { name: "Kertas Bekas", rarity: "Common", chance: 60 },
+                { name: "Kaleng Kosong", rarity: "Common", chance: 60 },
+                { name: "Komponen Elektronik", rarity: "Uncommon", chance: 25 },
+                { name: "Aksesori Bekas", rarity: "Uncommon", chance: 25 },
+                { name: "Peralatan Rumah", rarity: "Uncommon", chance: 25 },
+                { name: "Barang Antik", rarity: "Rare", chance: 12 },
+                { name: "Perhiasan Kuno", rarity: "Rare", chance: 12 },
+                { name: "Perangkat Teknologi", rarity: "Rare", chance: 12 },
+                { name: "Artefak Langka", rarity: "Legendary", chance: 3 },
+                { name: "Barang Koleksi Limited", rarity: "Legendary", chance: 3 },
+                { name: "Harta Karun Tersembunyi", rarity: "Legendary", chance: 3 }
+            ];
+
+            let rand = Math.random() * 100;
+            let cumulativeChance = 0;
+
+            for (let item of items) {
+                cumulativeChance += item.chance;
+                if (rand <= cumulativeChance) {
+                    return item;
+                }
+            }
+        }
+
+        function updateEnergyBar() {
+            const maxEnergy = 150;
+            let currentEnergy = parseInt(localStorage.getItem("energy")) || maxEnergy;
+            document.getElementById('energyValue').textContent = currentEnergy;
+            document.getElementById('energyBar').style.width = `${(currentEnergy / maxEnergy) * 100}%`;
+        }
+
+        function searchTreasure() {
+            let currentEnergy = parseInt(localStorage.getItem("energy")) || 150;
+            if (currentEnergy < 10) {
+                alert("Energi tidak cukup untuk mencari barang!");
+                return;
+            }
+
+            let item = getRandomItem();
+            currentEnergy -= 10;
+            localStorage.setItem("energy", currentEnergy);
+            updateEnergyBar();
+            addItemToInventory(item);
+        }
+
+        function addItemToInventory(item) {
+            let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
+            inventory.push(item);
+            localStorage.setItem("inventory", JSON.stringify(inventory));
+            loadInventory();
+        }
+
+        function loadInventory() {
+            let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
+            let inventoryContainer = document.getElementById("inventoryList");
+            inventoryContainer.innerHTML = "";
+
+            if (inventory.length === 0) {
+                inventoryContainer.innerHTML = "<p class='text-gray-500'>Inventaris masih kosong.</p>";
+                return;
+            }
+
+            inventory.forEach((item, index) => {
+                let itemElement = document.createElement("div");
+                itemElement.className = "p-2 border-b flex justify-between";
+                itemElement.innerHTML = `<span>${item.name} (${item.rarity})</span>`;
+                inventoryContainer.appendChild(itemElement);
+            });
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen p-4">
+    <div class="max-w-6xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-blue-600 mb-2">Search Dump</h1>
+            <p class="text-gray-600">Menjadi pemburu harta karun di tempat pembuangan!</p>
+        </header>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Energi</h2>
+            <div class="mb-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-600">Energi Saat Ini:</span>
+                    <span class="font-bold text-blue-600"><span id="energyValue">150</span>/150</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-4">
+                    <div id="energyBar" class="bg-blue-600 h-4 rounded-full w-full transition-all duration-300"></div>
+                </div>
+                <p class="text-sm text-gray-500 mt-2">Energi berkurang 10 setiap pencarian</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Inventaris</h2>
+            <div id="inventoryList" class="text-gray-700"></div>
+        </div>
+
+        <div class="text-center mt-8">
+            <button onclick="searchTreasure()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300">
+                Mulai Pencarian!
+            </button>
+        </div>
+    </div>
+</body>
+</html>
